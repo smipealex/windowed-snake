@@ -15,16 +15,11 @@ public class Game {
     private MovementTo                    _vector              = MovementTo.STAY;
     private final Vector<GameObject>      _objects             = new Vector<>();
 
-    private final Vector<JFrame>          _openWindows         = new Vector<>();
-
     private boolean                       _gameIsPlaying       = true;
 
     private final KeyHandler              _keyHandler          = new KeyHandler();
 
     private final JFrame                  _main;
-
-    private final ImageIcon snakeIcon = new ImageIcon("snake.png");
-    private final ImageIcon appleIcon = new ImageIcon("apple.png");
 
     public Game() throws InterruptedException {
         Scanner scanner = new Scanner(System.in);
@@ -32,15 +27,17 @@ public class Game {
         String data = scanner.nextLine();
         WINDOW_WIDTH = Integer.parseInt(data.split(",")[0]);
         WINDOW_HEIGHT = Integer.parseInt(data.split(",")[1]);
-        System.out.print("Field Size(normal: 10,10 ; 20,20 - optimized): ");
+        System.out.print("Field Size(normal: 10,10 ; " + (Toolkit.getDefaultToolkit().getScreenSize().width / WINDOW_WIDTH) +
+                "," + (Toolkit.getDefaultToolkit().getScreenSize().height / WINDOW_HEIGHT)+ " - optimized): ");
         data = scanner.nextLine();
         FIELD_WIDTH = Integer.parseInt(data.split(",")[0]);
         FIELD_HEIGHT = Integer.parseInt(data.split(",")[1]);
+        System.out.print("Game speed(100): ");
+        int _speed = scanner.nextInt();
         _main = new JFrame();
         JComponent _component = new JComponent() {
             @Override
             protected void paintComponent(Graphics g) {
-                System.out.println("Yes");
                 g.setFont(new Font("Arial", Font.BOLD, 40));
                 g.drawString("Score: " + _score, 10,50);
                 g.setFont(new Font("Arial", Font.BOLD, 20));
@@ -54,34 +51,39 @@ public class Game {
         _main.setLocation(1000,500);
         _main.setVisible(true);
 
-        int newApplePositionX = (int) (Math.random() * FIELD_WIDTH);
-        int newApplePositionY = (int) (Math.random() * FIELD_HEIGHT);
+        int newApplePositionX = (int) (Math.random() * FIELD_WIDTH-1);
+        int newApplePositionY = (int) (Math.random() * FIELD_HEIGHT-1);
 
-        if(newApplePositionX == FIELD_WIDTH/2-1) newApplePositionX -= 1;
-        if(newApplePositionY == FIELD_HEIGHT/2-1) newApplePositionY -= 1;
+        if(newApplePositionX == (FIELD_WIDTH/2-1)) newApplePositionX -= 1;
+        if(newApplePositionY == (FIELD_HEIGHT/2-1)) newApplePositionY -= 1;
 
         Vector2 newApplePosition = new Vector2(newApplePositionX, newApplePositionY);
 
-        Apple _apple = new Apple(newApplePosition);
+        Apple _apple = new Apple();
+        _apple.initializeWindow(WINDOW_WIDTH, WINDOW_HEIGHT);
+        _apple.set_position(newApplePosition);
         _objects.add(_apple);
 
-        int newHeadPositionX = FIELD_HEIGHT / 2;
+        int newHeadPositionX = FIELD_WIDTH / 2;
         int newHeadPositionY = FIELD_HEIGHT / 2;
 
         Vector2 newHeadPosition = new Vector2(newHeadPositionX, newHeadPositionY);
 
         Tail head = new Tail(TailType.HEAD,null);
+        head.initializeWindow(WINDOW_WIDTH, WINDOW_HEIGHT);
         head.set_position(newHeadPosition);
 
         _objects.add(head);
 
         while(_gameIsPlaying){
             update();
-            Thread.sleep(500);
+            Thread.sleep(_speed);
         }
 
         Thread.sleep(4000);
-        clear();
+        for(GameObject obj : _objects){
+            obj.closeWindow();
+        }
     }
 
     private void checkKeys(){
@@ -91,31 +93,6 @@ public class Game {
     private void update(){
         checkKeys();
         logicUpdate();
-        clear();
-        draw();
-    }
-
-    private void clear(){
-        for(JFrame window : _openWindows){
-            window.dispose();
-        }
-    }
-
-    private void draw(){
-        clear();
-        for(GameObject obj : _objects){
-            JFrame next = new JFrame();
-            next.setSize(WINDOW_WIDTH,WINDOW_HEIGHT);
-            int newWindowPositionX = obj.get_position().getX() * FIELD_WIDTH;
-            int newWindowPositionY = obj.get_position().getY() * FIELD_HEIGHT;
-            next.setLocation(newWindowPositionX, newWindowPositionY);
-            next.setTitle(obj.get_type() == GameObjectType.TAIL ? "Tail" : "Apple");
-            next.setIconImage((obj.get_type() == GameObjectType.TAIL ? snakeIcon : appleIcon).getImage());
-            next.setVisible(true);
-            _main.toFront();
-            _openWindows.add(next);
-        }
-        _main.setCursor(Cursor.getDefaultCursor());
     }
 
     private void logicUpdate(){
@@ -149,6 +126,7 @@ public class Game {
                         _score++;
                         _main.update(_main.getGraphics());
                         Tail tail = new Tail(TailType.TAIL, (Tail) _objects.get(_objects.size()-1));
+                        tail.initializeWindow(WINDOW_WIDTH, WINDOW_HEIGHT);
                         _objects.add(tail);
 
                         int newApplePositionX = (int) (Math.random() * FIELD_WIDTH);
@@ -165,6 +143,7 @@ public class Game {
                     }
                     currentTail.set_position(currentTail.getNextTail().get_lastPosition());
                 }
+                _main.toFront();
             }
         }
     }

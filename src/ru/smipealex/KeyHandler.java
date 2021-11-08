@@ -4,7 +4,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener {
-    private MovementTo movementTo = MovementTo.RIGHT;
+    private MovementTo movementTo = MovementTo.STAY;
 
     public MovementTo getVector(){
         return movementTo;

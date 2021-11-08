@@ -1,8 +1,7 @@
 package ru.smipealex;
 
 public class Apple extends GameObject {
-    public Apple(Vector2 position){
+    public Apple(){
         super(GameObjectType.APPLE);
-        set_position(position);
     }
 }
